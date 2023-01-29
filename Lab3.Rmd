@@ -138,10 +138,10 @@ print(paste("The associated lambda value for the minimum MSE on the Lasso pensal
 Data scientists often use the "one-standard-error" rule when tuning lambda to select the best model. This rule tells us to pick the most parsimonious model (fewest number of predictors) while still remaining within one standard error of the overall minimum cross validation error. The cv.glmnet() model object has a column that automatically finds the value of lambda associated with the model that produces an MSE that is one standard error from the MSE minimum (\$lambda.1se).
 
 -   ***Question 8.*** Find the number of predictors associated with this model (hint: the \$nzero is the \# of predictors column).
+*Response: The total number of predictors for the lasso model is 7.*
 
 ```{r}
-lasso$nzero[lasso$lambda == lasso$lambda.min]
-
+#lasso$nzero[lasso$lambda == lasso$lambda.min]
 lasso$nzero[lasso$lambda == lasso$lambda.1se]
 
 ```
