@@ -1,6 +1,6 @@
 ---
-title: "Lab4"
-author: "Mateo Robbins"
+title: "Lab3"
+author: "Javier Patrón"
 date: "2023-01-25"
 output: html_document
 ---
@@ -23,7 +23,7 @@ The data set provided includes variables related to the sex, physical dimensions
 Pull the abalone data from Github and take a look at it.
 
 ```{r data}
-abdat<- dat <- read_csv(file = "https://raw.githubusercontent.com/MaRo406/eds-232-machine-learning/main/data/abalone-data.csv")
+abdat <- dat <- read_csv(file = "https://raw.githubusercontent.com/MaRo406/eds-232-machine-learning/main/data/abalone-data.csv")
 glimpse(abdat)
 
 ```
@@ -32,13 +32,39 @@ glimpse(abdat)
 
 -   ***Question 1***. Split the data into training and test sets. Use a 70/30 training/test split.
 
+```{r}
+
+abalone_split <- initial_split(data = abdat, prop = .70 )
+
+```
+
 We'll follow our text book's lead and use the caret package in our approach to this task. We will use the glmnet package in order to perform ridge regression and the lasso. The main function in this package is glmnet(), which can be used to fit ridge regression models, lasso models, and more. In particular, we must pass in an x matrix of predictors as well as a y outcome vector , and we do not use the y∼x syntax.
 
 ### Fit a ridge regression model
 
 -   ***Question 2***. Use the model.matrix() function to create a predictor matrix, x, and assign the Rings variable to an outcome vector, y.
 
+```{r}
+
+X = model.matrix(data = abdat, Rings ~ . )
+
+Y = log(abdat$Rings)
+
+
+```
+
+
 -   ***Question 3***. Fit a ridge model (controlled by the alpha parameter) using the glmnet() function. Make a plot showing how the estimated coefficients change with lambda. (Hint: You can call plot() directly on the glmnet() objects).
+
+```{r}
+coefficient <- glmnet(x = X,
+       y = Y,
+       alpha = 0) |> 
+  plot(sub = "Estimated Coefficents with Lambda (Ridge Penalty Model)")
+
+
+```
+
 
 ### Using *k*-fold cross validation resampling and tuning our models
 
@@ -46,14 +72,81 @@ In lecture we learned about two methods of estimating our model's generalization
 
 -   ***Question 4***. This time fit a ridge regression model and a lasso model, both with using cross validation. The glmnet package kindly provides a cv.glmnet() function to do this (similar to the glmnet() function that we just used). Use the alpha argument to control which type of model you are running. Plot the results.
 
+Ridge Penalty Model
+```{r}
+ridge <- cv.glmnet(x = X, y = Y, alpha = 0)
+
+plot(ridge, main = "Ridge Penalty\n\n",
+     sub = "MSE Evaluation with k-fold process")
+
+ridge$lambda.min
+
+```
+
+Lasso Penalty Model
+```{r}
+
+lasso <- cv.glmnet(x = X,
+          y = Y,
+          alpha = 1)
+
+plot(lasso,
+       main = "Lasso Penalty\n\n",
+       sub = "MSE Evaluation with k-fold process")
+
+
+```
+
+
 -   ***Question 5***. Interpret the graphs. What is being show on the axes here? How does the performance of the models change with the value of lambda?
+
+*Response: On one hand we have the Ridge Penalty Model, which has a constant number of features (variables) on the top axis of the graph. Meaning that the Penalty is affecting all 10 features constantly with an increasing lambda. As we increase Lambda the MSE increases making an S shape curve.*
+
+*On the other hand, the Lasso Penalty Model the number of features in the top of the graph are decreasing, making the model simpler as you increase the lambda. It can be seen that around the -5 lambda the model MSE starts to increase significantly. *
+
+```{r}
+
+if (min(ridge$cvm) < min(lasso$cvm)){
+  print("The mean squared error of the Ridge Penalty is smaller than the Lasso Penaly")
+} else {
+  print("The mean squared error of the Lasso Penalty is smaller than the Ridge Penaly")
+}
+```
 
 -   ***Question 6***. Inspect the ridge model object you created with cv.glmnet(). The \$cvm column shows the MSEs for each cv fold. What is the minimum MSE? What is the value of lambda associated with this MSE minimum?
 
+```{r}
+#Some wrangling for the Ridge model results
+#Minimum MSE value
+print(paste("The minimum MSE value for the Ridge Penalty is:", round(min(ridge$cvm),5)))
+print(paste("The associated lambda value for the minimum MSE on the ridge pensalty graph is", round(ridge$lambda.min,5)))
+
+```
+
+
 -   ***Question 7***. Do the same for the lasso model. What is the minimum MSE? What is the value of lambda associated with this MSE minimum?
+
+```{r}
+#Some wrangling for the Lasso model results
+#Minimum MSE value
+print(paste("The minimum MSE value for the Lasso Penalty is:", round(min(lasso$cvm),5)))
+print(paste("The associated lambda value for the minimum MSE on the Lasso pensalty graph is", round(lasso$lambda.min,5)))
+
+```
+
 
 Data scientists often use the "one-standard-error" rule when tuning lambda to select the best model. This rule tells us to pick the most parsimonious model (fewest number of predictors) while still remaining within one standard error of the overall minimum cross validation error. The cv.glmnet() model object has a column that automatically finds the value of lambda associated with the model that produces an MSE that is one standard error from the MSE minimum (\$lambda.1se).
 
 -   ***Question 8.*** Find the number of predictors associated with this model (hint: the \$nzero is the \# of predictors column).
 
+```{r}
+lasso$nzero[lasso$lambda == lasso$lambda.min]
+
+lasso$nzero[lasso$lambda == lasso$lambda.1se]
+
+```
+
+
 -   **Question 9.** Which regularized regression worked better for this task, ridge or lasso? Explain your answer.
+
+*Response: The Lasso penalty worked better. Here is why: The Ridge penalty dotted lines are pretty narrow in comparison to the Lasso Penalty. Meaning that the Ridge model has a smaller range of "tuning" to find the good equilibrium between over fitting and under fitting. Moreover if you compare the minimum MSE between the Ridge Penalty and the Lasso penalty (as seen in Question 5) you can see that the Lasso penalty has a lower MSE. Overall, the Lasso regression is better because have a wider range of low MSE for lambda, and it has a lower MSE. *

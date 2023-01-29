@@ -73,7 +73,6 @@ coef(ridge)[c("Latitude", "Overall_QualVery_Excellent"), 1]
 How much improvement to our loss function as lambda changes?
 
 
-
 ##Tuning
 ```{r cv.glmnet}
 # Apply CV ridge regression to Ames data.  Same arguments as before to glmnet()
