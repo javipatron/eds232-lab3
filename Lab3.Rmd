@@ -75,6 +75,7 @@ ridge <- cv.glmnet(x = X, y = Y, alpha = 0)
 plot(ridge, main = "Ridge Penalty\n\n",
      sub = "MSE Evaluation with k-fold process")
 
+min(ridge$cvm)
 ridge$lambda.min
 
 ```
@@ -90,15 +91,27 @@ plot(lasso,
        main = "Lasso Penalty\n\n",
        sub = "MSE Evaluation with k-fold process")
 
+min(lasso$cvm)
+lasso$lambda.min
 
 ```
 
 
 -   ***Question 5***. Interpret the graphs. What is being show on the axes here? How does the performance of the models change with the value of lambda?
 
-*Response: On one hand we have the Ridge Penalty Model, which has a constant number of features (variables) on the top axis of the graph. Meaning that the Penalty is affecting all 10 features constantly with an increasing lambda. As we increase Lambda the MSE increases making an S shape curve.*
+*Response: On one hand we have the Ridge Penalty Model, which has a constant number of features (variables) on the top axis of the graph. Showing that the Penalty is affecting all 10 features constantly with an increasing lambda. As we increase Lambda the MSE increases making an slight S shape curve showing that the "optimal" area of the model is with the lower lambda (-4 to -3).*
 
-*On the other hand, the Lasso Penalty Model the number of features in the top of the graph are decreasing, making the model simpler as you increase the lambda. It can be seen that around the -5 lambda the model MSE starts to increase significantly. *
+*On the other hand, the Lasso Penalty Model decreases in number of features in the top of the graph making the model simpler as you increase the lambda. It can be seen that around the -5 lambda the model MSE starts to increase significantly making the model less confident. *
+
+-   ***Question 6***. Inspect the ridge model object you created with cv.glmnet(). The \$cvm column shows the MSEs for each cv fold. What is the minimum MSE? What is the value of lambda associated with this MSE minimum?
+
+```{r}
+#Some wrangling for the Ridge model results
+#Minimum MSE value
+print(paste("The minimum MSE value for the Ridge Penalty is:", round(min(ridge$cvm),5), "and the associated lambda value is", round(ridge$lambda.min,5)))
+
+```
+
 
 ```{r}
 
@@ -109,15 +122,7 @@ if (min(ridge$cvm) < min(lasso$cvm)){
 }
 ```
 
--   ***Question 6***. Inspect the ridge model object you created with cv.glmnet(). The \$cvm column shows the MSEs for each cv fold. What is the minimum MSE? What is the value of lambda associated with this MSE minimum?
 
-```{r}
-#Some wrangling for the Ridge model results
-#Minimum MSE value
-print(paste("The minimum MSE value for the Ridge Penalty is:", round(min(ridge$cvm),5)))
-print(paste("The associated lambda value for the minimum MSE on the ridge pensalty graph is", round(ridge$lambda.min,5)))
-
-```
 
 -   ***Question 7***. Do the same for the lasso model. What is the minimum MSE? What is the value of lambda associated with this MSE minimum?
 
